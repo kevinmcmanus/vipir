@@ -50,7 +50,7 @@ class vipir():
     def snr(self):
         return self.total_power-self.total_noise.reshape(-1,1)
 
-    def image(self, enhance=True):
+    def image(self, size=(1024, 1024), enhance=True):
 
         snr = self.total_power-self.total_noise.reshape(-1,1)
         cmap = matplotlib.cm.get_cmap('gnuplot')
@@ -65,6 +65,9 @@ class vipir():
         else:
             im = snr_im
 
+        #make 'em all same size
+        im = im.resize(size)
+        self.imsize = im.size
         return im
 
     def pixel_to_coords(self, pxl):
@@ -79,18 +82,29 @@ class vipir():
 
         return (self.freq[ind_x], self.rng[ind_y])
 
-    def coords_to_pixel(self, coords):
+    def coords_to_pixel(self, coords, size=(1024, 1024)):
         """
         returns pixel coordinates of the frequency, range tuple
         """
+
+        width, height = size
+
         f = coords[0]
         r = coords[1]
 
         assert(f >= self.minfreq and f <= self.maxfreq)
         assert(r >= self.minrng and r <= self.maxrng)
 
-        ind_f = np.where(f >= self.freq)[0] #first one
-        ind_r = self.nrng - np.where(r >= self.rng)[0] #flipped image
+        #frequency is in log scale
+        flogmin = np.log10(self.minfreq)
+        flogmax = np.log10(self.maxfreq)
+        flog = np.log10(f)
+        f_pix = int(width*(flog - flogmin)/(flogmax-flogmin))
 
-        return (ind_f, ind_r)
+        # range dimension is inverted in the image
+        r_pixup = int(height*(r-self.minrng)/(self.maxrng-self.minrng))
+        # flip it
+        r_pix = height - r_pixup
+        
+        return (f_pix, r_pix)
 
