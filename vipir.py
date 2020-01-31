@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime, timezone
 
 import matplotlib
+from matplotlib import cm
 from PIL import Image, ImageDraw, ImageEnhance
 
 class vipir():

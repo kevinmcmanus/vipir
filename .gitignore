@@ -134,3 +134,4 @@ netcdf/
 testplot.jpg
 testplot.png
 TensorFlow/
+model_images/
