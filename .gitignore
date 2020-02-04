@@ -135,3 +135,6 @@ testplot.jpg
 testplot.png
 TensorFlow/
 model_images/
+model_xmls/
+annotations/
+*.tar

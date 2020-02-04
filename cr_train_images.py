@@ -4,7 +4,10 @@ import re
 import vipir as vp
 from shutil import rmtree
 from PIL import Image
-
+"""
+Creates an vipir image for each netcdf file in a directory full of them
+Image is saved out as a jpeg
+"""
 
 cdfdir = './netcdf'
 imdir = './model_images'
