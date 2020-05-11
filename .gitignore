@@ -134,6 +134,7 @@ netcdf/
 testplot.jpg
 testplot.png
 TensorFlow/
+models/
 model_images/
 model_xmls/
 annotations/

@@ -9,7 +9,13 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {"PYTHONPATH":"${workspaceFolder}/TensorFlow/models/research"},
+            "args": ["--label_map_path", "${workspaceFolder}/resnet_train/data/vipir_label_map.pbtxt",
+                     "--data_dir", "${workspaceFolder}/resnet_train/data",
+                     "--output_dir","${workspaceFolder}/resnet_train/data",
+                     "--shard_root","vipir_data"
+            ]
         }
     ]
 }
