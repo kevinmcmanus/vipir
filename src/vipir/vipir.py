@@ -411,6 +411,7 @@ def get_cdf(stn=None,dtstr=None, path=None, ftpsite ='ftp.ngdc.noaa.gov', rootdi
     return vip
 
 from datetime import datetime, timezone, timedelta
+import re
 def obsname_todt(obsname:str) -> datetime:
     year = int(obsname[6:10])
     daynum = int(obsname[10:13]) # day of the year
