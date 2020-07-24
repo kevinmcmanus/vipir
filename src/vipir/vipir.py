@@ -432,9 +432,9 @@ def get_flist(stn, fromstr, tostr, interval = timedelta(minutes=10),
     """
     
     #convert fromstr and tostr to UTC  datetime objects
-    fromdt = datetime.fromisoformat(fromstr)
+    fromdt = datetime.strptime(fromstr,'%Y-%m-%d %H:%M:%S')
     fromdt = fromdt.replace(tzinfo=timezone.utc)  
-    todt = datetime.fromisoformat(tostr)
+    todt = datetime.strptime(tostr,'%Y-%m-%d %H:%M:%S')
     todt = todt.replace(tzinfo=timezone.utc)
 
     #set up ftp connection
