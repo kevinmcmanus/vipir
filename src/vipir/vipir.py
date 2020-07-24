@@ -11,7 +11,7 @@ import matplotlib.colors as colors
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.colorbar import colorbar
 
-from vipir.utils import modelutils as mod_util
+#from vipir.utils import modelutils as mod_util
 
 class vipir():
 
@@ -49,7 +49,7 @@ class vipir():
             
             
             # some metadata
-            self.obs_time = datetime.datetime(
+            self.obs_time = datetime(
                 np.array(vars['year'][:]).item(),
                 np.array(vars['month'][:]).item(),
                 np.array(vars['day'][:]).item(),
