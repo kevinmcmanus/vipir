@@ -17,55 +17,59 @@ class vipir():
 
     def __init__(self, path):
         
-        with Dataset(path, "r", format="NETCDF4") as rootgrp:
+        rootgrp = Dataset(path, "r", format="NETCDF4")
 
-            vars = rootgrp.variables
+        vars = rootgrp.variables
 
-            self.station=np.asarray(vars['StationName'][:]).tostring().decode('UTF-8').strip()
+        self.station=np.asarray(vars['StationName'][:]).tostring().decode('UTF-8').strip()
 
-            self.rng = np.asarray(rootgrp.variables['Range'][:])
-            self.freq = np.asarray(rootgrp.variables['Frequency'][:])
+        self.rng = np.asarray(rootgrp.variables['Range'][:])
+        self.freq = np.asarray(rootgrp.variables['Frequency'][:])
 
-            self.minrng = self.rng.min()
-            self.maxrng = self.rng.max()
-            self.nrng = len(self.rng)
+        self.minrng = self.rng.min()
+        self.maxrng = self.rng.max()
+        self.nrng = len(self.rng)
 
-            self.minfreq = self.freq.min()
-            self.maxfreq = self.freq.max()
-            self.nfreq = len(self.freq)
-            
-            #default image size (gets overwritten if image method called)
-            self.imsize = (1024, 1024)
+        self.minfreq = self.freq.min()
+        self.maxfreq = self.freq.max()
+        self.nfreq = len(self.freq)
+        
+        #default image size (gets overwritten if image method called)
+        self.imsize = (1024, 1024)
 
-            # power and noise
-            self.total_power = np.asarray(rootgrp.variables['total_power'][:,:])
-            self.total_noise = np.asarray(rootgrp.variables['total_noise'][:])
-            
-            self.O_mode_power = np.asarray(rootgrp.variables['O-mode_power'][:,:])
-            self.O_mode_noise = np.asarray(rootgrp.variables['O-mode_noise'][:])
-            
-            self.X_mode_power = np.asarray(rootgrp.variables['X-mode_power'][:,:])
-            self.X_mode_noise = np.asarray(rootgrp.variables['X-mode_noise'][:])
-            
-            
-            # some metadata
-            self.obs_time = datetime(
-                np.array(vars['year'][:]).item(),
-                np.array(vars['month'][:]).item(),
-                np.array(vars['day'][:]).item(),
-                np.array(vars['hour'][:]).item(),
-                np.array(vars['minute'][:]).item(),
-                np.array(vars['second'][:]).item(),
-                tzinfo=timezone.utc
-            )
+        # power and noise
+        self.total_power = np.asarray(rootgrp.variables['total_power'][:,:])
+        self.total_noise = np.asarray(rootgrp.variables['total_noise'][:])
+        
+        self.O_mode_power = np.asarray(rootgrp.variables['O-mode_power'][:,:])
+        self.O_mode_noise = np.asarray(rootgrp.variables['O-mode_noise'][:])
+        
+        self.X_mode_power = np.asarray(rootgrp.variables['X-mode_power'][:,:])
+        self.X_mode_noise = np.asarray(rootgrp.variables['X-mode_noise'][:])
+        
+        
+        # some metadata
+        self.obs_time = datetime(
+            np.array(vars['year'][:]).item(),
+            np.array(vars['month'][:]).item(),
+            np.array(vars['day'][:]).item(),
+            np.array(vars['hour'][:]).item(),
+            np.array(vars['minute'][:]).item(),
+            np.array(vars['second'][:]).item(),
+            tzinfo=timezone.utc
+        )
 
-            self.station_location = {
-                'longitude':np.array(vars['longitude'][:]).item(),
-                'latitude':np.array(vars['latitude'][:]).item(),
-                'altitude':np.array(vars['altitude'][:]).item()
-            }
-            
-            self.colormaps = None
+        self.station_location = {
+            'longitude':np.array(vars['longitude'][:]).item(),
+            'latitude':np.array(vars['latitude'][:]).item(),
+            'altitude':np.array(vars['altitude'][:]).item()
+        }
+
+        self.colormaps = None
+
+        rootgrp.close()
+        print('Rootgroup successfully closed')
+
 
     # TODO: figure out a way to encapsulate the snr computation
     def snr(self, which='total_power', thresh=3):
@@ -394,18 +398,19 @@ def get_cdf(stn=None,dtstr=None, path=None, ftpsite ='ftp.ngdc.noaa.gov', rootdi
         cdfpath = path
         
     # create a temp file to fetch the cdf into
+    fout = None
     fh =  tempfile.mkstemp()
 
     #fetch the cdf
-    with open(fh[1],'wb') as fout:
-        with FTP(ftpsite) as ftp:
-            ftp.login()
-            ftp.retrbinary(f'RETR {cdfpath}', fout.write)
+    with FTP(ftpsite) as ftp, open(fh[1],'wb') as fout:
+        ftp.login()
+        ftp.retrbinary(f'RETR {cdfpath}', fout.write)
             
-    # read up as a vip what we just fetched        
+    # read up as a vip what we just ftp'd        
     vip = vipir(fh[1])
     
     #ditch the temp file
+    os.close(fh[0]) # need to close since mkstemp opened it
     os.remove(fh[1])
     
     return vip
