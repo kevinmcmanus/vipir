@@ -433,21 +433,33 @@ def obsname_todt(obsname:str) -> datetime:
 def get_flist(stn, fromstr, tostr, interval = timedelta(minutes=10),
               ftpsite ='ftp.ngdc.noaa.gov',rootdir='/ionosonde/data'):
     """
-    fromstr and tostr are utc in iso format
+    returns list of ionogram (ngi) files from station over the 'fromstr' 'tostr' period separated
+    by at least 'interval'.
+    stn is station name, string
+    fromstr and tostr are strings in iso format in utc
+    interval is a timedelta, default 10 minutes, None=> 0 minutes, i.e. all observations
     """
     
-    #convert fromstr and tostr to UTC  datetime objects
+    #convert fromstr and tostr to UTC  datetime objects with tzinfo
     fromdt = datetime.strptime(fromstr,'%Y-%m-%d %H:%M:%S')
     fromdt = fromdt.replace(tzinfo=timezone.utc)  
     todt = datetime.strptime(tostr,'%Y-%m-%d %H:%M:%S')
     todt = todt.replace(tzinfo=timezone.utc)
+
+    #initialize lastdt to really early so that we pick up first observation in interval    
+    lastdt = datetime.strptime('1900-01-01 00:00:00','%Y-%m-%d %H:%M:%S')
+    lastdt = lastdt.replace(tzinfo=timezone.utc)
+
+    if interval is None:
+        interval = timedelta(minutes=0)
 
     #set up ftp connection
     ftp = FTP(ftpsite)
     ftp.login()
     
     #loop over the days and accumulate the qualifying file names
-    lastdt = thisdt = fromdt
+
+    thisdt = fromdt
     flist = []
     try:
         while thisdt <= todt:
@@ -479,10 +491,20 @@ def get_flist(stn, fromstr, tostr, interval = timedelta(minutes=10),
             flist += obs_list
 
             #see what tomorrow brings
-            thisdt += timedelta(days=1)
+            thisdt = thisdt.replace(hour=0, minute=0, second=0) + timedelta(days=1)
     
     finally:
         ftp.close()
     
     return flist
         
+if __name__ == '__main__':
+
+    td = timedelta(hours=1)
+
+    flist = get_flist('WI937', '2020-07-31 18:00:00','2020-08-01 06:00:00', interval=td)
+
+    for f in flist:
+        print(f'Returned: {f[0]}')
+
+    assert len(flist) == 5
