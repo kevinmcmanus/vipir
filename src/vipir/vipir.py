@@ -17,58 +17,55 @@ class vipir():
 
     def __init__(self, path):
         
-        rootgrp = Dataset(path, "r", format="NETCDF4")
+        with Dataset(path, "r", format="NETCDF4") as rootgrp:
 
-        vars = rootgrp.variables
+            vars = rootgrp.variables
 
-        self.station=np.asarray(vars['StationName'][:]).tostring().decode('UTF-8').strip()
+            self.station=np.asarray(vars['StationName'][:]).tostring().decode('UTF-8').strip()
 
-        self.rng = np.asarray(rootgrp.variables['Range'][:])
-        self.freq = np.asarray(rootgrp.variables['Frequency'][:])
+            self.rng = np.asarray(rootgrp.variables['Range'][:])
+            self.freq = np.asarray(rootgrp.variables['Frequency'][:])
 
-        self.minrng = self.rng.min()
-        self.maxrng = self.rng.max()
-        self.nrng = len(self.rng)
+            self.minrng = self.rng.min()
+            self.maxrng = self.rng.max()
+            self.nrng = len(self.rng)
 
-        self.minfreq = self.freq.min()
-        self.maxfreq = self.freq.max()
-        self.nfreq = len(self.freq)
-        
-        #default image size (gets overwritten if image method called)
-        self.imsize = (1024, 1024)
+            self.minfreq = self.freq.min()
+            self.maxfreq = self.freq.max()
+            self.nfreq = len(self.freq)
+            
+            #default image size (gets overwritten if image method called)
+            self.imsize = (1024, 1024)
 
-        # power and noise
-        self.total_power = np.asarray(rootgrp.variables['total_power'][:,:])
-        self.total_noise = np.asarray(rootgrp.variables['total_noise'][:])
-        
-        self.O_mode_power = np.asarray(rootgrp.variables['O-mode_power'][:,:])
-        self.O_mode_noise = np.asarray(rootgrp.variables['O-mode_noise'][:])
-        
-        self.X_mode_power = np.asarray(rootgrp.variables['X-mode_power'][:,:])
-        self.X_mode_noise = np.asarray(rootgrp.variables['X-mode_noise'][:])
-        
-        
-        # some metadata
-        self.obs_time = datetime(
-            np.array(vars['year'][:]).item(),
-            np.array(vars['month'][:]).item(),
-            np.array(vars['day'][:]).item(),
-            np.array(vars['hour'][:]).item(),
-            np.array(vars['minute'][:]).item(),
-            np.array(vars['second'][:]).item(),
-            tzinfo=timezone.utc
-        )
+            # power and noise
+            self.total_power = np.asarray(rootgrp.variables['total_power'][:,:])
+            self.total_noise = np.asarray(rootgrp.variables['total_noise'][:])
+            
+            self.O_mode_power = np.asarray(rootgrp.variables['O-mode_power'][:,:])
+            self.O_mode_noise = np.asarray(rootgrp.variables['O-mode_noise'][:])
+            
+            self.X_mode_power = np.asarray(rootgrp.variables['X-mode_power'][:,:])
+            self.X_mode_noise = np.asarray(rootgrp.variables['X-mode_noise'][:])
+            
+            
+            # some metadata
+            self.obs_time = datetime(
+                np.array(vars['year'][:]).item(),
+                np.array(vars['month'][:]).item(),
+                np.array(vars['day'][:]).item(),
+                np.array(vars['hour'][:]).item(),
+                np.array(vars['minute'][:]).item(),
+                np.array(vars['second'][:]).item(),
+                tzinfo=timezone.utc
+            )
 
-        self.station_location = {
-            'longitude':np.array(vars['longitude'][:]).item(),
-            'latitude':np.array(vars['latitude'][:]).item(),
-            'altitude':np.array(vars['altitude'][:]).item()
-        }
+            self.station_location = {
+                'longitude':np.array(vars['longitude'][:]).item(),
+                'latitude':np.array(vars['latitude'][:]).item(),
+                'altitude':np.array(vars['altitude'][:]).item()
+            }
 
-        self.colormaps = None
-
-        rootgrp.close()
-        print('Rootgroup successfully closed')
+            self.colormaps = None
 
 
     # TODO: figure out a way to encapsulate the snr computation
@@ -301,7 +298,7 @@ class vipir():
         red_hsv_cmap   = ListedColormap(red_hsv)
         green_hsv_cmap = ListedColormap(green_hsv)
         
-        return {'red_hsv':red_hsv_cmap, "green_hsv":green_hsv_cmap}
+        return {'o_pwr_cmap':red_hsv_cmap, "x_pwr_cmap":green_hsv_cmap}
 
 
     def plot_pwr(self, fig, thresh=3.0, gamma=0.5):
@@ -321,7 +318,7 @@ class vipir():
 
         cmaps = self.get_colormaps()
 
-        px = ax.pcolormesh(freq, rng, x_pwr_m.T,cmap=cmaps['green_hsv'],
+        px = ax.pcolormesh(freq, rng, x_pwr_m.T,cmap=cmaps['x_pwr_cmap'],
                    norm=colors.PowerNorm(gamma=gamma),
                   vmin=0, vmax=50)
         cax_x = fig.add_subplot(gs[1],frameon=False)
@@ -329,7 +326,7 @@ class vipir():
                            extend='max')
         cax_x.set_title('X-Power', pad=0.1)
 
-        po = ax.pcolormesh(freq, rng, o_pwr_m.T,cmap=cmaps['red_hsv'],
+        po = ax.pcolormesh(freq, rng, o_pwr_m.T,cmap=cmaps['o_pwr_cmap'],
                        norm=colors.PowerNorm(gamma=gamma),
                       vmin=0, vmax=50)
         cax_o = fig.add_subplot(gs[2],frameon=False)
@@ -497,6 +494,18 @@ def get_flist(stn, fromstr, tostr, interval = timedelta(minutes=10),
         ftp.close()
     
     return flist
+
+def load_cdf(dirname):
+    """
+    loads all of the NGI files in a directory, returns them in a list
+    """
+
+    flist = [f for f in os.listdir(dirname) if re.search(r'^.*.NGI$',f)]
+
+    obslist = [vipir(os.path.join(dirname, f)) for f in flist ]
+
+    return obslist
+
         
 if __name__ == '__main__':
 
@@ -507,4 +516,8 @@ if __name__ == '__main__':
     for f in flist:
         print(f'Returned: {f[0]}')
 
-    assert len(flist) == 5
+    assert len(flist) == 12
+
+    obslist = load_cdf(r'..\data\WI937cache')
+    assert len(obslist) ==24
+    print(f'{len(obslist)} files loaded from cache')
