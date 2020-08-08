@@ -4,17 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+        {
+            "name": "Python: No Args",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "env": {"PYTHONPATH":"${workspaceFolder}/TensorFlow/models/research"},
-            "args": ["--label_map_path", "${workspaceFolder}/resnet_train/data/vipir_label_map.pbtxt",
-                     "--data_dir", "${workspaceFolder}/resnet_train/data",
-                     "--output_dir","${workspaceFolder}/resnet_train/data",
-                     "--shard_root","vipir_data"
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "args": [
+                "WI937cache"
             ]
         }
     ]

@@ -9,16 +9,35 @@ import matplotlib.colors as colors
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.colorbar import colorbar
 
+import argparse
+
 import os
 import sys
 sys.path.append('./src')
 
+import matplotlib.patches as patches
+def draw_box_on_axis(ax, l_left, xext, yext,
+                    label=None, color='red', linestyle='-',linewidth=3):
+
+    r = patches.Rectangle( l_left, xext, yext,facecolor='none',
+                      edgecolor= color, linestyle=linestyle, linewidth=linewidth, label=label)
+
+    ax.add_patch(r)
+
 from vipir.vipir import vipir as vp, get_cdf, get_flist, load_cdf
 
+parser = argparse.ArgumentParser(description='Run animation on set of observations')
+parser.add_argument('cache',help='cache name')
+parser.add_argument('--data_dir',help='where the data is to be found', default='./data')
+
+args = parser.parse_args()
+
 print(f'Current working directory: {os.getcwd()}')
+print(f'Data Directory: {args.data_dir}')
+print(f'Cache Directory: {args.cache}')
 
 #flist = get_flist('WI937', '2020-07-31 18:00:00','2020-08-01 06:00:00', interval=timedelta(hours=1))
-obslist = load_cdf(r'../data/WI937cache')
+obslist = load_cdf(os.path.join(args.data_dir, args.cache))
 print(f'{len(obslist)} files retrieved')
 
 #useful data structure for animating
@@ -41,12 +60,14 @@ animation_data = {
     'o_pwr_masked':[masked_array(o.snr(which='O_mode_power'),
             o.snr(which='X_mode_power') > o.snr(which='O_mode_power')+x_pwr_thresh) for o in obslist],
     'x_pwr_masked':[masked_array(o.snr(which='X_mode_power'),
-            o.snr(which='X_mode_power') <= o.snr(which='O_mode_power')+x_pwr_thresh) for o in obslist]
+            o.snr(which='X_mode_power') <= o.snr(which='O_mode_power')+x_pwr_thresh) for o in obslist],
+    'bbox':[o.get_trace_bbox() for o in obslist]
     }
 
 
 fig = plt.figure(figsize=(12,9))
 #set up the figure
+#plt.ion()
 gs = gridspec.GridSpec(1,3, width_ratios=[8,1,1])
 ax = fig.add_subplot(gs[0], frameon=True)
 
@@ -92,9 +113,15 @@ def init():
 def animate(iter):
     stn = animation_data['station']
     obs_time = animation_data['obs_time'][iter]
+    bbox = animation_data['bbox'][iter]
     ax.set_title(stn + ' ' + obs_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
+    ax.patches = []
     px.set_array(animation_data['x_pwr_masked'][iter][:-1,:-1].T.flatten())
     po.set_array(animation_data['o_pwr_masked'][iter][:-1,:-1].T.flatten())
+
+    draw_box_on_axis(ax, (bbox['freqstart'], bbox['rngstart']),
+            bbox['freqend']-bbox['freqstart'],
+            bbox['rngend']-bbox['rngstart'])
     return px, po
 
 #plt.ion()
