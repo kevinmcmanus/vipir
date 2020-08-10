@@ -115,6 +115,7 @@ def animate(iter):
     obs_time = animation_data['obs_time'][iter]
     bbox = animation_data['bbox'][iter]
     ax.set_title(stn + ' ' + obs_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
+
     ax.patches = []
     px.set_array(animation_data['x_pwr_masked'][iter][:-1,:-1].T.flatten())
     po.set_array(animation_data['o_pwr_masked'][iter][:-1,:-1].T.flatten())

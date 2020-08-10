@@ -501,6 +501,7 @@ def load_cdf(dirname):
     """
 
     flist = [f for f in os.listdir(dirname) if re.search(r'^.*.NGI$',f)]
+    flist.sort()
 
     obslist = [vipir(os.path.join(dirname, f)) for f in flist ]
 
