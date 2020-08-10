@@ -1,0 +1,9 @@
+name: vipir
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - anaconda
+  - netcdf4
+prefix: C:\Users\kevin\Anaconda3\envs\vipir
+
