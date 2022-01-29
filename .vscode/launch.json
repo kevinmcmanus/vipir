@@ -22,7 +22,7 @@
                 "PYTHONPATH": "${workspaceFolder}/src"
             },
             "args": [
-                "WI937cache"
+                "${workspaceFolder}/data/WI937cache"
             ]
         }
     ]

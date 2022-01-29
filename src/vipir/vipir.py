@@ -312,7 +312,7 @@ class vipir():
         rng = self.rng
 
         #set up the figure
-        gs = gridspec.GridSpec(1,3, width_ratios=[8,1,1])
+        gs = gridspec.GridSpec(1,3, width_ratios=[18,1,1])
         ax = fig.add_subplot(gs[0], frameon=True)
 
 
@@ -322,18 +322,23 @@ class vipir():
                    norm=colors.PowerNorm(gamma=gamma),
                   vmin=0, vmax=50)
         cax_x = fig.add_subplot(gs[1],frameon=False)
-        cba = plt.colorbar(px, cax=cax_x, shrink=0.75, fraction=0.5,
+        cba = plt.colorbar(px, ax=cax_x, shrink=0.75, fraction=0.5,
                            extend='max')
-        cax_x.set_title('X-Power', pad=0.1)
+        #cax_x.set_title('X-Power', pad=0.65)
+        cax_x.xaxis.set_ticks([]); cax_x.yaxis.set_ticks([])
+        cba.ax.set_xlabel('SNR (db)')
+        cba.ax.set_title('X-Power')
 
         po = ax.pcolormesh(freq, rng, o_pwr_m.T,cmap=cmaps['o_pwr_cmap'],
                        norm=colors.PowerNorm(gamma=gamma),
                       vmin=0, vmax=50)
         cax_o = fig.add_subplot(gs[2],frameon=False)
-        cbb = plt.colorbar(po, cax=cax_o,shrink=0.25, fraction=0.5,
+        cbb = plt.colorbar(po, ax=cax_o,shrink=1, fraction=0.5,
                          extend='max')
-        cax_o.set_title('O-Power')
-        cax_o.set_ylabel('SNR (dB)', rotation=270, labelpad=0.15)
+        #cax_o.set_title('O-Power')
+        cax_o.xaxis.set_ticks([]); cax_o.yaxis.set_ticks([])
+        cbb.ax.set_xlabel('SNR (db)')
+        cbb.ax.set_title('O-Power')
 
         ax.set_xscale('log')
         #ax.set_yscale('log')
@@ -344,7 +349,6 @@ class vipir():
         ax.set_title(self.station + ' ' +self.obs_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
 
         return ax
-    
 
     def get_trace_bbox(self, imthresh = 30.0, thresh=3.0, size=5):
         import scipy.ndimage as nd
