@@ -3,13 +3,13 @@ import numpy as np
 from datetime import datetime, timezone
 import datetime
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm, ticker
 from PIL import Image, ImageDraw, ImageEnhance
 
 from numpy.ma import masked_array
 import matplotlib.colors as colors
 import matplotlib.gridspec as gridspec
-from mpl_toolkits.axes_grid1.colorbar import colorbar
+#from mpl_toolkits.axes_grid1.colorbar import colorbar
 
 #from vipir.utils import modelutils as mod_util
 
@@ -318,9 +318,9 @@ class vipir():
 
         cmaps = self.get_colormaps()
 
+        norm = colors.PowerNorm(gamma=gamma, vmin=0, vmax=50)
         px = ax.pcolormesh(freq, rng, x_pwr_m.T,cmap=cmaps['x_pwr_cmap'],
-                   norm=colors.PowerNorm(gamma=gamma),
-                  vmin=0, vmax=50)
+                   norm=norm)
         cax_x = fig.add_subplot(gs[1],frameon=False)
         cba = plt.colorbar(px, ax=cax_x, shrink=0.75, fraction=0.5,
                            extend='max')
@@ -330,8 +330,7 @@ class vipir():
         cba.ax.set_title('X-Power')
 
         po = ax.pcolormesh(freq, rng, o_pwr_m.T,cmap=cmaps['o_pwr_cmap'],
-                       norm=colors.PowerNorm(gamma=gamma),
-                      vmin=0, vmax=50)
+                       norm=norm)
         cax_o = fig.add_subplot(gs[2],frameon=False)
         cbb = plt.colorbar(po, ax=cax_o,shrink=1, fraction=0.5,
                          extend='max')
@@ -341,13 +340,15 @@ class vipir():
         cbb.ax.set_title('O-Power')
 
         ax.set_xscale('log')
-        #ax.set_yscale('log')
+        ax.set_xticks(freq[0::len(freq)//8])
+        ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
 
         ax.set_ylabel('Range (km)')
-        ax.set_xlabel('Frequency log(kHz)')
+        ax.set_xlabel('Frequency (kHz)')
 
         ax.set_title(self.station + ' ' +self.obs_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
-
+        ax.grid(color='grey', ls=':', lw=1)
+        
         return ax
 
     def get_trace_bbox(self, imthresh = 30.0, thresh=3.0, size=5):
@@ -516,7 +517,7 @@ if __name__ == '__main__':
 
     td = timedelta(hours=1)
 
-    flist = get_flist('WI937', '2020-07-31 18:00:00','2020-08-01 06:00:00', interval=td)
+    flist = get_flist('WI937', '2021-12-13 00:00:00','2021-12-14 23:59:59', interval=td)
 
     for f in flist:
         print(f'Returned: {f[0]}')
