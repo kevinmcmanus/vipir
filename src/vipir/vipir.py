@@ -94,9 +94,9 @@ class vipir():
             
         return pwr-noise.reshape(-1,1)
     
-    def img_array(self, thresh=3):
+    def img_array(self, thresh=3, gamma=0.5):
         cmaps = self.get_colormaps()
-        norm = colors.Normalize(vmin=0, vmax=100)
+        norm = colors.PowerNorm(vmin=0, vmax=50, gamma=gamma)
         
         #get the power measures
         o_pwr = self.snr(which='O_mode_power')
@@ -109,8 +109,8 @@ class vipir():
         x_pwr = x_pwr*mask
         o_pwr = o_pwr*np.logical_not(mask)
 
-        o_np = cmaps['red_hsv'](norm(o_pwr),bytes=True)
-        x_np = cmaps['green_hsv'](norm(x_pwr),bytes=True)
+        o_np = cmaps['o_pwr_cmap'](norm(o_pwr),bytes=True)
+        x_np = cmaps['x_pwr_cmap'](norm(x_pwr),bytes=True)
         
         #put them together and transpose
         img_np = np.transpose(o_np + x_np, axes=[1,0,2])
@@ -517,13 +517,16 @@ if __name__ == '__main__':
 
     td = timedelta(hours=1)
 
-    flist = get_flist('WI937', '2021-12-13 00:00:00','2021-12-14 23:59:59', interval=td)
+    # #flist = get_flist('WI937', '2021-12-13 00:00:00','2021-12-14 23:59:59', interval=td)
 
-    for f in flist:
-        print(f'Returned: {f[0]}')
+    # for f in flist:
+    #     print(f'Returned: {f[0]}')
 
-    assert len(flist) == 12
+    # assert len(flist) == 12
 
-    obslist = load_cdf(r'..\data\WI937cache')
-    assert len(obslist) ==24
+    obslist = load_cdf(r'.\data\WI937')
+    #ssert len(obslist) ==24
     print(f'{len(obslist)} files loaded from cache')
+    fig = plt.figure(figsize=(24, 18))
+    obslist[-1].plot_pwr(fig)
+    plt.show()
