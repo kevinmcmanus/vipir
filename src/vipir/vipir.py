@@ -355,6 +355,17 @@ def load_cdf(dirname):
 
     return obslist
 
+def get_cdflist(dirname):
+    """
+    finds all of the NGI files in a directory, returns their names in a list
+    """
+
+    flist = [f for f in os.listdir(dirname) if re.search(r'^.*.NGI$',f)]
+    flist.sort()
+
+    obslist = [os.path.join(dirname, f) for f in flist ]
+
+    return obslist
         
 if __name__ == '__main__':
 
