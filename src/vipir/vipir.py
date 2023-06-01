@@ -176,8 +176,11 @@ class vipir():
 
     def plot_pwr(self, fig, thresh=3.0, gamma=0.5):
 
+        #x_power and o_power plotted using different color scales
+        #plot o_power when it exceeds x_power by a threshold db
         o_pwr = self.snr('O_mode_power')
         x_pwr = self.snr('X_mode_power')
+        #mask out the values that are NOT to plotted for each power
         x_pwr_m = masked_array(x_pwr, x_pwr <=  o_pwr+thresh)
         o_pwr_m = masked_array(o_pwr, x_pwr >   o_pwr+thresh)
 
@@ -188,36 +191,39 @@ class vipir():
         gs = gridspec.GridSpec(1,3, width_ratios=[18,1,1])
         ax = fig.add_subplot(gs[0], frameon=True)
 
-
+        #colormaps
         cmaps = self.get_colormaps()
 
+        #set up normalization
         norm = colors.PowerNorm(gamma=gamma, vmin=0, vmax=50)
+
+        #plot the x_power and its colorbar
         px = ax.pcolormesh(freq, rng, x_pwr_m.T,cmap=cmaps['x_pwr_cmap'],
                    norm=norm)
         cax_x = fig.add_subplot(gs[1],frameon=False)
         cba = plt.colorbar(px, ax=cax_x, shrink=0.75, fraction=0.5,
                            extend='max')
-        #cax_x.set_title('X-Power', pad=0.65)
         cax_x.xaxis.set_ticks([]); cax_x.yaxis.set_ticks([])
-        cba.ax.set_xlabel('SNR (db)')
+        cba.ax.set_xlabel('SNR\n(db)')
         cba.ax.set_title('X-Power')
 
+        #plot the o_power and its colorbar
         po = ax.pcolormesh(freq, rng, o_pwr_m.T,cmap=cmaps['o_pwr_cmap'],
                        norm=norm)
         cax_o = fig.add_subplot(gs[2],frameon=False)
-        cbb = plt.colorbar(po, ax=cax_o,shrink=1, fraction=0.5,
+        cbb = plt.colorbar(po, ax=cax_o,shrink=0.75, fraction=0.5,
                          extend='max')
-        #cax_o.set_title('O-Power')
         cax_o.xaxis.set_ticks([]); cax_o.yaxis.set_ticks([])
-        cbb.ax.set_xlabel('SNR (db)')
+        cbb.ax.set_xlabel('SNR\n(db)')
         cbb.ax.set_title('O-Power')
 
+        #fix up the axes and annotation
         ax.set_xscale('log')
         ax.set_xticks(freq[0::len(freq)//8])
         ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+        ax.set_xlabel('Frequency (kHz)')
 
         ax.set_ylabel('Range (km)')
-        ax.set_xlabel('Frequency (kHz)')
 
         ax.set_title(self.station + ' ' +self.obs_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
         ax.grid(color='grey', ls=':', lw=1)
